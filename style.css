@@ -37,3 +37,11 @@ header h1 {
 .favorites i {
     color: red;
 }
+
+.results {
+    margin-top: 1.5rem;
+}
+
+.favorites {
+    margin-top: 2.5rem;
+}

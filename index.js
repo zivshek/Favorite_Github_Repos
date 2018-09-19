@@ -1,23 +1,14 @@
 const inputValue = document.querySelector("#search");
 const searchButton = document.querySelector(".searchBtn");
 
-const result_nameContainer = document.querySelector(".results_name");
-const result_languageContainer = document.querySelector(".results_language");
-const result_tagContainer = document.querySelector(".results_tag");
-const result_addIconContainer = document.querySelector(".addIcons");
+const results_container = document.querySelector(".results_container");
+const favorites_container = document.querySelector(".favorites_container");
 
-
-//favorite repos
-const favorite_nameContainer = document.querySelector(".favorites_name");
-const favorite_languageContainer = document.querySelector(".favorites_language");
-const favorite_tagContainer = document.querySelector(".favorites_tag");
-const favorite_removeIconContainer = document.querySelector(".removeIcons");
-
-
-//api tokens
+// api tokens
 const client_id = "Iv1.062f0c06d797e453";
 const client_secret = "424bd47fc39785ad474a72c8623581b4b27367bc";
 
+const MAX_RESULTS = 10;
 
 let result_displayItems = [];
 let result_addIcons = [];
@@ -29,26 +20,20 @@ const fetchResults = async (input) => {
     const api_call = await fetch(`https://api.github.com/search/repositories?q=${input}+in:name&sort=stars&order=desc?client_id=${client_id}&client_secret=${client_secret}`);
     
     const data = await api_call.json();
-    
     return { data } 
 }
-
 
 const fetchTags = async (appName) => {
     const api_call = await fetch(`https://api.github.com/repos/${appName}/tags?client_id=${client_id}&client_secret=${client_secret}`);
     
-    const data = await api_call.json();
-    
+    const data = await api_call.json();   
     return { data }
 }
 
 const fetchData = () => {
     fetchResults(inputValue.value).then((res) => {
-        
-        var asyncTasksLeft = 0;
-        
-        for (let i = 0; i <10; i++) {
-            asyncTasksLeft++;
+              
+        for (let i = 0; i < MAX_RESULTS; i++) {
             let displayItem = {};
             
             displayItem.Name = res.data.items[i].full_name;
@@ -60,43 +45,51 @@ const fetchData = () => {
                 else
                     displayItem.LatestTag = "Not available";
                 
+                // now we've got an item, we can display it already, no need to wait for all of them
                 result_displayItems.push(displayItem);
-                
-                // Decrement async count everytime we are in this callback func,
-                // and when no callback's left, we continue our program
-                if (--asyncTasksLeft == 0) {
-                    window.dispatchEvent(new CustomEvent("asyncTasksDone"));
-                }
+                window.dispatchEvent(new CustomEvent("newItemGot"));
             })
         }
     });
 }
 
-const showSearchResults = () => {
-    for (let i = 0; i < 10; i++) {      
-        result_nameContainer.innerHTML += `<p>${result_displayItems[i].Name}</p>`;
-        result_languageContainer.innerHTML += `<p>${result_displayItems[i].Language}</p>`;
-        result_tagContainer.innerHTML += `<p>${result_displayItems[i].LatestTag}</p>`;
-        result_addIconContainer.innerHTML += `<p><i class="fas fa-plus-circle"></i></p>`;
-    }
-    result_addIcons = getIconArray('fas fa-plus-circle');
-    registerIcons(result_addIcons, addFavorite);
+// type: 'results' or 'favorites'
+const appendHTML = (index, type, container, itemArray) => {
+    let newDiv = document.createElement('div');
+    newDiv.className = `${type} row created`;    
+    newDiv.innerHTML += divWrapper(itemArray[index].Name, 5);
+    newDiv.innerHTML += divWrapper(itemArray[index].Language, 3);
+    newDiv.innerHTML += divWrapper(itemArray[index].LatestTag, 3);
+    if (type === 'results')
+        newDiv.innerHTML += divWrapper(`<i id="addIcon${index}" class="fas fa-plus-circle"></i>`, 1);
+    else
+        newDiv.innerHTML += divWrapper(`<i id="removeIcon${index}" class="fas fa-minus-circle"></i>`, 1);
+    container.appendChild(newDiv);
+}
+
+// el stands for element, and w for width
+const divWrapper = (el, w) => {
+    return `<div class="col-sm-${w} col-md-${w} col-lg-${w} col-xl-${w}"><p>${el}</p></div>`;
+}
+
+const showSearchResult = (index) => {
+    
+    appendHTML(index, 'results', results_container, result_displayItems);
+    
+    result_addIcons.push(getIcon("addIcon", index));
+    registerIcon(result_addIcons[index], addFavorite);
 }
 
 const clearResultView = () => {
-    result_nameContainer.innerHTML = "";
-    result_languageContainer.innerHTML = "";
-    result_tagContainer.innerHTML = "";
-    result_addIconContainer.innerHTML = "";
+    $('.results.row.created').remove();
+    
     result_displayItems = [];
     result_addIcons = [];
 }
 
 const clearFavoriteView = () => {
-    favorite_nameContainer.innerHTML = "";
-    favorite_languageContainer.innerHTML = "";
-    favorite_tagContainer.innerHTML = "";
-    favorite_removeIconContainer.innerHTML = "";
+    $('.favorites.row.created').remove();
+    favorite_removeIcons = [];
 }
 
 const addFavorite = (evt) => { 
@@ -120,36 +113,35 @@ const addFavorite = (evt) => {
     showFavorites();
 }
 
-const getIconArray = (iconClassName) => {
-    return document.getElementsByClassName(iconClassName);
+const getIcon = (iconType, index) => {
+    let iconID = iconType + index.toString();
+    return document.getElementById(iconID);
 }
 
-const registerIcons = (iconsArray, callbackFunc) => {
-    for (let i = 0; i < iconsArray.length; i++) {
-        iconsArray[i].addEventListener("click", callbackFunc);
-    }
+const registerIcon = (iconObj, callbackFunc) => {
+    iconObj.addEventListener("click", callbackFunc);
 }
 
 const showFavorites = () => {
     clearFavoriteView();
+    
     for (let i = 0; i < favorite_displayItems.length; i++) {
-        favorite_nameContainer.innerHTML += `<p>${favorite_displayItems[i].Name}</p>`;
-        favorite_languageContainer.innerHTML += `<p>${favorite_displayItems[i].Language}</p>`;
-        favorite_tagContainer.innerHTML += `<p>${favorite_displayItems[i].LatestTag}</p>`;
-        favorite_removeIconContainer.innerHTML += `<p><i class="fas fa-minus-circle"></i></p>`;
+        appendHTML(i, 'favorites', favorites_container, favorite_displayItems);
+        favorite_removeIcons.push(getIcon("removeIcon", i));
+        console.log(favorite_removeIcons[i].id);
+        registerIcon(favorite_removeIcons[i], removeFavorite);
     }
     
-    favorite_removeIcons = getIconArray('fas fa-minus-circle');
-    registerIcons(favorite_removeIcons, removeFavorite);
+    console.log(favorite_displayItems.length);
 }
 
 const removeFavorite = (evt) => {
     for (let i = 0; i < favorite_removeIcons.length; i++) {
         if (favorite_removeIcons[i] === evt.target) {
+            console.log('1');
             favorite_displayItems.splice(i, 1);
         }
     }
-    
     showFavorites();
 }
 
@@ -163,14 +155,14 @@ searchButton.addEventListener("click", () => {
     if (inputValue.value.length != 0) {
         clearResultView();
         fetchData();
-        showFavorites();
     } else {
         alert("Please type a key word!");
     }
 });
 
-window.addEventListener("asyncTasksDone", () => {
-    showSearchResults();
-});
+window.addEventListener("newItemGot", (evt) => {
+    let itemCount = result_displayItems.length;
+    showSearchResult(itemCount - 1);
+})
 
 

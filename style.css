@@ -1,0 +1,39 @@
+
+
+.txt-centered {
+    text-align: center;
+}
+
+header {
+    background-color: #7433f1;
+}
+
+header h1 {
+    padding: 3rem;
+    margin-bottom: 0;
+    color: white;
+}
+
+.wrap-box {
+    width: 85%;
+    margin: 2rem auto;
+}
+
+
+.searchBtn {
+    background-color: #7433f1;
+    color: white;
+}
+
+.contents {
+    background-color: #f3ecfe;
+    height: 100vh;
+}
+
+.results i {
+    color: green;
+}
+
+.favorites i {
+    color: red;
+}

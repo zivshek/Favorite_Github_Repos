@@ -23,11 +23,56 @@ header h1 {
 .searchBtn {
     background-color: #7433f1;
     color: white;
+    text-align: center;
+    transition: all 0.5s;
+    cursor: pointer;
+}
+
+.searchBtn span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+.searchBtn span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+}
+
+.searchBtn:hover {
+    background-color: green;
+    transition: background-color 200ms linear;
+}
+
+.searchBtn:hover span {
+  padding-right: 25px;
+}
+
+.searchBtn:hover span:after {
+  opacity: 1;
+  right: 0;
 }
 
 .contents {
     background-color: #f3ecfe;
     height: 100vh;
+}
+
+.results {
+    margin-top: 1.5rem;
+}
+
+.favorites {
+    margin-top: 2.5rem;
+}
+
+.created i {
+    cursor: pointer;
 }
 
 .results i {
@@ -38,10 +83,35 @@ header h1 {
     color: red;
 }
 
-.results {
-    margin-top: 1.5rem;
+@-webkit-keyframes resultsBlink {  
+  50% { color: darkgoldenrod; }
+  51% { color: darkred; }
+  100% { color: green; }
 }
 
-.favorites {
-    margin-top: 2.5rem;
+@-webkit-keyframes favoritesBlink {  
+  0% { color: red; }
+  50% { color: mediumvioletred; }
+  51% { color: orangered; }
+}
+
+.results i:hover {
+    -webkit-animation-name: resultsBlink;  
+    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-duration: 0.5s; 
+}
+
+.favorites i:hover {
+    -webkit-animation-name: favoritesBlink;  
+    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-duration: 0.2s; 
+} 
+
+.favorites.row {
+    margin-bottom: 2rem;
+}
+
+.favorites.row.created  {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
 }
